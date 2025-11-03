@@ -1,4 +1,4 @@
-name: build docker image
+name: Build Docker Image (Self-hosted)
 
 on:
   pull_request:
@@ -7,16 +7,16 @@ on:
 
 permissions:
   contents: read
-  packages: write   #
+  packages: write
 
 jobs:
   lint-and-test:
     name: Lint, Build & Test
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     steps:
       - name: Checkout code
-      - uses: actions/checkout@v4
+        uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v3
@@ -64,12 +64,13 @@ jobs:
 
   docker:
     name: Build, Test & Push Docker Images
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: lint-and-test
     if: success()
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v2
