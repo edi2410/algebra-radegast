@@ -1,8 +1,10 @@
 # FastAPI Project
 
-![CI](https://github.com/edi2410/algebra-radegast/actions/workflows/main.yml/badge.svg)
+![CI](https://github.com/edi2410/algebra-radegast/actions/workflows/build.yml/badge.svg)
+
 [![codecov](https://codecov.io/gh/edi2410/algebra-radegast/branch/main/graph/badge.svg)](https://codecov.io/gh/edi2410/algebra-radegast)
-[View test coverage](https://<tvoj-korisnik>.github.io/<repo>/index.html)
+
+[View test coverage](https://<tvoj-korisnik>.github.io/algebra-radegast/index.html)
 
 
 ## Setup Instructions
