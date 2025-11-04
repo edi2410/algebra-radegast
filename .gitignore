@@ -1,5 +1,7 @@
 actions-runner
 .venv
+.env
+.env.test
 
 __pycache__/
 *.pyc
