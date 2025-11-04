@@ -11,7 +11,7 @@ services:
     depends_on:
       - db
     volumes:
-      - ./app:/app/app
+      - ./app:/app/volumes
     networks:
       - app-network
   db:
