@@ -132,7 +132,7 @@ class TestAuthRoutes:
 
     def test_register_with_different_roles(self, client: TestClient, session: Session):
         """Test registration with different user roles"""
-        roles = ["guest", "moderator", "admin"]
+        roles = ["guest", "teacher", "admin"]
 
         for idx, role in enumerate(roles):
             response = client.post(
@@ -147,15 +147,15 @@ class TestAuthRoutes:
             assert response.status_code == 200
             assert "access_token" in response.json()
 
-    def test_auth_headers_moderator(self, client: TestClient):
+    def test_auth_headers_teacher(self, client: TestClient):
         """Create a moderator user and return auth headers"""
         response = client.post(
             "/api/v1/auth/token/register",
             json={
-                "email": "moderator@example.com",
+                "email": "teacher@example.com",
                 "password": "testpass123",
-                "full_name": "Moderator User",
-                "role": "moderator"
+                "full_name": "Teacher User",
+                "role": "teacher"
             }
         )
         token = response.json()["access_token"]

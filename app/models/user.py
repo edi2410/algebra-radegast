@@ -2,7 +2,7 @@ from enum import Enum
 from typing import Optional
 
 from pydantic import EmailStr
-from sqlmodel import SQLModel, Field, Relationship
+from sqlmodel import SQLModel, Field
 
 
 
@@ -10,7 +10,7 @@ from sqlmodel import SQLModel, Field, Relationship
 # Define roles as Enum
 class Role(str, Enum):
     ADMIN = "admin"
-    CONTENT_MODERATOR = "moderator"
+    TEACHER = "teacher"
     GUEST = "guest"
 
 

@@ -86,7 +86,6 @@ class AuthService:
     def require_creator_or_admin(
             current_user: User = Depends(get_current_user)
     ) -> User:
-        print(f"Current user role: {current_user.role}")
 
         if current_user.role == Role.GUEST:
             raise HTTPException(
@@ -94,6 +93,19 @@ class AuthService:
                 detail="Only content creator and admin can perform this action.",
             )
         return current_user
+
+    @staticmethod
+    def require_admin(
+            current_user: User = Depends(get_current_user)
+    ) -> User:
+        if current_user.role == Role.ADMIN:
+            return current_user
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Only content creator and admin can perform this action.",
+            )
+
 
 
 def _generate_token(user: User) -> str:

@@ -14,14 +14,14 @@ class CourseBase(SQLModel):
 
 class Course(CourseBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
-    teacher_id: int
+    teacher_id: Optional[int] = Field(default=None, foreign_key="user.id")
 
 class CourseCreate(CourseBase):
     pass
 
 class CourseRead(CourseBase):
     id: int
-    teacher_id: int
+    teacher_id: Optional[int] = None
 
 class CourseUpdate(SQLModel):
     title: Optional[str] = None
