@@ -6,7 +6,6 @@ from app.config.config import settings
 from app.models.user import UserCreate, User
 from app.services.user_services import UserService
 
-
 engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URI))
 
 
@@ -18,12 +17,11 @@ def init_db() -> None:
             select(User).where(User.email == settings.FIRST_SUPERUSER)
         ).first()
 
-
         if not user:
             user_in = UserCreate(
                 email=settings.FIRST_SUPERUSER,
                 password=settings.FIRST_SUPERUSER_PASSWORD,
-                is_superuser=True,
+                role=User.Role.ADMIN,
             )
             UserService.create_user(session=session, user=user_in)
 

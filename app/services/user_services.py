@@ -1,3 +1,4 @@
+from django.contrib.admindocs.utils import ROLES
 from sqlmodel import Session, select
 from fastapi import HTTPException, status
 
@@ -26,6 +27,7 @@ class UserService:
         new_user = User(
             email=user.email,
             full_name=user.full_name,
+            role= user.role if user.role else User.Role.GUEST,
             hashed_password=hashed_password,
         )
         session.add(new_user)

@@ -17,5 +17,9 @@ def test_app_includes_routers(client: TestClient):
 
 
     # Check that auth endpoints exist
-    assert "/auth/token" in paths
-    assert "/auth/token/register" in paths
+    assert "/api/v1/auth/token" in paths
+    assert "/api/v1/auth/token/register" in paths
+
+    # Check that course endpoints exist
+    assert "/api/v1/courses/" in paths
+    assert "/api/v1/courses/{course_id}" in paths

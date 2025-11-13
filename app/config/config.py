@@ -49,7 +49,7 @@ class Settings(BaseSettings):
     POSTGRES_PORT: int = 5432
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str
-    POSTGRES_DB: str = ""
+    POSTGRES_NAME: str = ""
 
     @computed_field
     @property
@@ -60,7 +60,7 @@ class Settings(BaseSettings):
             password=self.POSTGRES_PASSWORD,
             host=self.POSTGRES_SERVER,
             port=int(self.POSTGRES_PORT),
-            path=f"{self.POSTGRES_DB}",
+            path=f"{self.POSTGRES_NAME}",
         )
 
     # TODO SMTP configuration for email

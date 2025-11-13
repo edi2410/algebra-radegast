@@ -1,9 +1,13 @@
 actions-runner
 .venv
+.venv/*
 .env
 .env.test
+venv
 
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
+
+.claude

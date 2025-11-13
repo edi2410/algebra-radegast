@@ -1,16 +1,18 @@
 from datetime import timedelta, datetime, timezone
 
 import jwt
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlmodel import Session, select
-from fastapi import HTTPException, status
+from fastapi import HTTPException, status, Depends
 
 from app.config.config import settings
-from app.models.user import User
+from app.core.db import SessionDep
+from app.models.user import User, Role
 from app.services.security_services import SecurityService
 from app.services.user_services import UserService
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+security = HTTPBearer()
+
 
 class AuthService:
 
@@ -40,7 +42,6 @@ class AuthService:
         encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm="HS256")
         return encoded_jwt
 
-
     @staticmethod
     def login_user(session: Session, email: str, password: str) -> str:
         user = AuthService.authenticate_user(session, email, password)
@@ -57,6 +58,42 @@ class AuthService:
     def register_and_login_user(session: Session, user_create) -> str:
         new_user = UserService.create_user(session, user_create)
         return _generate_token(new_user)
+
+    @staticmethod
+    def get_current_user(
+            session: SessionDep,
+            credentials: HTTPAuthorizationCredentials = Depends(security),
+    ) -> User:
+        token = credentials.credentials
+        credentials_exception = HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+        try:
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
+            email: str = payload.get("sub")
+            if email is None:
+                raise credentials_exception
+        except jwt.PyJWTError:
+            raise credentials_exception
+        user = AuthService.get_user(session, email)
+        if user is None:
+            raise credentials_exception
+        return user
+
+    @staticmethod
+    def require_creator_or_admin(
+            current_user: User = Depends(get_current_user)
+    ) -> User:
+        print(f"Current user role: {current_user.role}")
+
+        if current_user.role == Role.GUEST:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Only content creator and admin can perform this action.",
+            )
+        return current_user
 
 
 def _generate_token(user: User) -> str:
