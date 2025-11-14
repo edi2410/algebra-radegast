@@ -18,7 +18,7 @@ class AuthService:
 
     @staticmethod
     def get_user(session: Session, email: str) -> User | None:
-        statement = select(User).where()
+        statement = select(User).where(User.email == email)
         result = session.exec(statement).first()
         return result
 

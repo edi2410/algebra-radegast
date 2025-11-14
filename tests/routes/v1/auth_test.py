@@ -65,8 +65,6 @@ class TestAuthRoutes:
         assert response.status_code == 422
 
     def test_login_success(self, client: TestClient, session: Session):
-        """Test successful login"""
-        # First register a user
         register_data = {
             "email": "loginuser@example.com",
             "password": "testpass123",
@@ -75,10 +73,9 @@ class TestAuthRoutes:
         }
         client.post("/api/v1/auth/token/register", json=register_data)
 
-        # Now login - USE PARAMS INSTEAD OF JSON
         response = client.post(
             "/api/v1/auth/token",
-            params={  # ← Changed from json= to params=
+            params={
                 "email": "loginuser@example.com",
                 "password": "testpass123"
             }

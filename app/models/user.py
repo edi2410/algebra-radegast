@@ -1,8 +1,11 @@
 from enum import Enum
-from typing import Optional
+from typing import Optional, TYPE_CHECKING, List
 
 from pydantic import EmailStr
-from sqlmodel import SQLModel, Field
+from sqlmodel import SQLModel, Field, Relationship
+
+if TYPE_CHECKING:
+    from app.models.course_teacher import CourseTeacher
 
 
 
@@ -27,6 +30,9 @@ class UserCreate(UserBase):
 class User(UserBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     hashed_password: str
+
+    courses_teaching: List["CourseTeacher"] = Relationship(back_populates="teacher")
+
 
 class UserRead(UserBase):
     id: int
