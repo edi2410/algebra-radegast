@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlmodel import select
+from sqlmodel import select, func
 from typing import List, Annotated
-
+from app.core.metrics import course_operations, active_courses, track_endpoint_metrics
 from app.core.db import SessionDep
-from app.models.course import Course, CourseRead, CourseCreate, CourseUpdate
+from app.models.course import Course, CourseRead, CourseCreate
 from app.models.user import User
 from app.services.auth_services import AuthService
 
@@ -13,56 +13,68 @@ router = APIRouter(
 )
 
 
+
 @router.get("/", response_model=List[CourseRead])
+@track_endpoint_metrics("courses_list")
 def list_courses(session: SessionDep) -> List[Course]:
-    return session.exec(select(Course)).all()
+    try:
+        courses = session.exec(select(Course)).all()
+        course_operations.labels(operation='list', status='success').inc()
+
+        # Update active courses gauge
+        count = session.exec(select(func.count(Course.id))).one()
+        active_courses.set(count)
+
+        return courses
+    except Exception as e:
+        course_operations.labels(operation='list', status='failed').inc()
+        raise
 
 
 @router.post("/", response_model=CourseRead)
+@track_endpoint_metrics("courses_create")
 def create_course(
         course_in: CourseCreate,
         session: SessionDep,
         current_user: Annotated[User, Depends(AuthService.require_admin)]
 ) -> Course:
-    course = Course(**course_in.model_dump())
-    session.add(course)
-    session.commit()
-    session.refresh(course)
-    return course
+    try:
+        course = Course(**course_in.model_dump())
+        session.add(course)
+        session.commit()
+        session.refresh(course)
 
+        course_operations.labels(operation='create', status='success').inc()
+        active_courses.inc()
 
-@router.get("/{course_id}", response_model=CourseRead)
-def get_course(course_id: int, session: SessionDep) -> Course:
-    course = session.get(Course, course_id)
-    if not course:
-        raise HTTPException(status_code=404, detail="Course not found")
-    return course
-
-
-@router.patch("/{course_id}", response_model=CourseRead)
-def update_course(
-        course_id: int,
-        course_in: CourseUpdate,
-        session: SessionDep,
-        current_user: Annotated[User, Depends(AuthService.require_admin)]
-) -> Course:
-    course = session.get(Course, course_id)
-    if not course:
-        raise HTTPException(status_code=404, detail="Course not found")
-    for field, value in course_in.model_dump(exclude_unset=True).items():
-        setattr(course, field, value)
-    session.add(course)
-    session.commit()
-    session.refresh(course)
-    return course
+        return course
+    except Exception as e:
+        course_operations.labels(operation='create', status='failed').inc()
+        raise
 
 
 @router.delete("/{course_id}")
-def delete_course(course_id: int, session: SessionDep,
-                  current_user: Annotated[User, Depends(AuthService.require_admin)]):
-    course = session.get(Course, course_id)
-    if not course:
-        raise HTTPException(status_code=404, detail="Course not found")
-    session.delete(course)
-    session.commit()
-    return {"ok": True}
+@track_endpoint_metrics("courses_delete")
+def delete_course(
+        course_id: int,
+        session: SessionDep,
+        current_user: Annotated[User, Depends(AuthService.require_admin)]
+):
+    try:
+        course = session.get(Course, course_id)
+        if not course:
+            course_operations.labels(operation='delete', status='not_found').inc()
+            raise HTTPException(status_code=404, detail="Course not found")
+
+        session.delete(course)
+        session.commit()
+
+        course_operations.labels(operation='delete', status='success').inc()
+        active_courses.dec()
+
+        return {"ok": True}
+    except HTTPException:
+        raise
+    except Exception as e:
+        course_operations.labels(operation='delete', status='failed').inc()
+        raise
