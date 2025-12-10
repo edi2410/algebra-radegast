@@ -30,7 +30,6 @@ http://localhost:8000/api/docs
 ReDoc:
 http://localhost:8000/api/redoc
 
-edited by programmer 1
 
 ---
 
