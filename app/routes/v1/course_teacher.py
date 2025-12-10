@@ -19,6 +19,32 @@ router = APIRouter(
 )
 
 
+@router.get("/", response_model=List[CourseTeacherRead])
+@track_endpoint_metrics("course_teacher_list")
+def get_course_teachers(
+        course_id: int,
+        session: SessionDep
+) -> List[CourseTeacherRead]:
+    """
+    Get all teachers assigned to a course.
+    Public endpoint - no authentication required.
+    """
+    assignments = CourseTeacherService.get_course_teachers(session, course_id)
+
+    result = []
+    for assignment in assignments:
+        teacher = session.get(User, assignment.teacher_id)
+        result.append(CourseTeacherRead(
+            id=assignment.id,
+            course_id=assignment.course_id,
+            teacher_id=assignment.teacher_id,
+            role=assignment.role,
+            assigned_at=assignment.assigned_at,
+            teacher_name=teacher.full_name if teacher else None,
+            teacher_email=teacher.email if teacher else None
+        ))
+
+    return result
 
 @router.post("/", response_model=CourseTeacherRead, status_code=status.HTTP_201_CREATED)
 @track_endpoint_metrics("course_teacher_assign")
