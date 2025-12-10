@@ -78,3 +78,55 @@ def delete_course(
     except Exception as e:
         course_operations.labels(operation='delete', status='failed').inc()
         raise
+
+
+@router.get("/{course_id}", response_model=CourseRead)
+@track_endpoint_metrics("courses_get")
+def get_course(
+        course_id: int,
+        session: SessionDep
+) -> Course:
+    try:
+        course = session.get(Course, course_id)
+        if not course:
+            course_operations.labels(operation='get', status='not_found').inc()
+            raise HTTPException(status_code=404, detail="Course not found")
+
+        course_operations.labels(operation='get', status='success').inc()
+        return course
+    except HTTPException:
+        raise
+    except Exception as e:
+        course_operations.labels(operation='get', status='failed').inc()
+        raise
+
+
+@router.patch("/{course_id}", response_model=CourseRead)
+@track_endpoint_metrics("courses_update")
+def update_course(
+        course_id: int,
+        course_update: CourseCreate,
+        session: SessionDep,
+        current_user: Annotated[User, Depends(AuthService.require_admin)]
+) -> Course:
+    try:
+        course = session.get(Course, course_id)
+        if not course:
+            course_operations.labels(operation='update', status='not_found').inc()
+            raise HTTPException(status_code=404, detail="Course not found")
+
+        update_data = course_update.model_dump(exclude_unset=True)
+        for field, value in update_data.items():
+            setattr(course, field, value)
+
+        session.add(course)
+        session.commit()
+        session.refresh(course)
+
+        course_operations.labels(operation='update', status='success').inc()
+        return course
+    except HTTPException:
+        raise
+    except Exception as e:
+        course_operations.labels(operation='update', status='failed').inc()
+        raise

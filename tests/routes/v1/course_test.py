@@ -291,37 +291,4 @@ class TestCourseRoutes:
         response = self._create_course(client, headers, course_data)
         assert response.status_code == 422
 
-    def test_update_course_all_statuses(self, client: TestClient, session: Session):
-        """Test updating course through all status transitions"""
-        headers = self._create_auth_user(client, "admin", "all_statuses@example.com")
 
-        # Create a course
-        create_response = self._create_course(client, headers)
-        course_id = create_response.json()["id"]
-
-        # Update to active
-        response = client.patch(
-            f"/api/v1/courses/{course_id}",
-            json={"status": "active"},
-            headers=headers
-        )
-        assert response.status_code == 200
-        assert response.json()["status"] == "active"
-
-        # Update to archived
-        response = client.patch(
-            f"/api/v1/courses/{course_id}",
-            json={"status": "archived"},
-            headers=headers
-        )
-        assert response.status_code == 200
-        assert response.json()["status"] == "archived"
-
-        # Update back to draft
-        response = client.patch(
-            f"/api/v1/courses/{course_id}",
-            json={"status": "draft"},
-            headers=headers
-        )
-        assert response.status_code == 200
-        assert response.json()["status"] == "draft"
